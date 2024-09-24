@@ -1,214 +1,205 @@
-#include <iostream>
-#include <cstdint>
-#include <string>
-#include <limits>
-
-struct node;
-
-void delete_node(node* n);
-void info_for_node(node* temp);
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <limits.h>
 
 struct node {
-    std::string     data;
-    uint32_t        priority;
-    node*           next;
-    node*           prev;
-
-    explicit node(const std::string& str, uint32_t prior)
-        : data(str), priority(prior), next(nullptr), prev(nullptr) 
-    {}
+    char* data;
+    uint32_t priority;
+    struct node* next;
+    struct node* prev;
 };
 
 struct priority_queue {
-
-    priority_queue() : head(nullptr), tail(nullptr), max_prior(0) 
-    {}
-    ~priority_queue() 
-    {
-        while (node* n = pop()) 
-        {
-            delete n;
-        }
-    }
-
-    void append(node* new_node) 
-    {
-        if (!head) {
-            head = tail = new_node;
-            max_prior = new_node->priority;
-            return;
-        }
-
-        node* temp = head;
-        while (temp != nullptr && new_node->priority >= temp->priority) 
-        {
-            temp = temp->next;
-        }
-
-        if (temp == head) 
-        {
-            new_node->next = head;
-            head->prev = new_node;
-            head = new_node;
-        }
-        else if (!temp)
-        {
-            tail->next = new_node;
-            new_node->prev = tail;
-            tail = new_node;
-        }
-        else 
-        {
-            new_node->next = temp;
-            new_node->prev = temp->prev;
-            temp->prev->next = new_node;
-            temp->prev = new_node;
-        }
-
-        if (new_node->priority > max_prior)
-        {
-            max_prior = new_node->priority;
-        }
-    }
-
-    void printAll() const 
-    {
-        if (!head) 
-        {
-            std::cout << "Queue is empty\n\n";
-            return;
-        }
-        node* temp = head;
-        while (temp != nullptr) 
-        {
-            info_for_node(temp);
-            temp = temp->next;
-        }
-    }
-
-    node* pop() 
-{
-    if (!tail) { return nullptr; }
-
-    node* temp = tail;
-
-    if (head == tail) 
-    {
-        head = nullptr;
-        tail = nullptr;
-    } 
-    else 
-    {
-        tail = tail->prev;
-        tail->next = nullptr;
-    }
-
-    temp->prev = nullptr;
-    return temp;
-}
-
-    uint32_t get_max_prior() const { return max_prior; }
-
-private:
-    node* head;
-    node* tail;
+    struct node* head;
+    struct node* tail;
     uint32_t max_prior;
 };
 
-node* wrapper() 
-{
-    std::cout << "Enter info (string): ";
-    std::string buffer;
-    std::getline(std::cin, buffer);
-
-    uint32_t prior;
-    std::cout << "Enter prior (integer): ";
-    if (!(std::cin >> prior)) 
-    {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cerr << "Invalid input, please enter an integer for priority.\n";
-        return nullptr;
+struct node* create_node(const char* str, uint32_t prior) {
+    struct node* new_node = (struct node*)malloc(sizeof(struct node));
+    if (!new_node) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
     }
 
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    return new node(buffer, prior);
+    new_node->data = (char*)malloc(strlen(str) + 1);
+    if (!new_node->data) {
+        fprintf(stderr, "Memory allocation failed\n");
+        free(new_node);
+        exit(EXIT_FAILURE);
+    }
+    strcpy(new_node->data, str);
+    new_node->priority = prior;
+    new_node->next = NULL;
+    new_node->prev = NULL;
+    return new_node;
 }
 
-void delete_node(node* n)
-{
-    delete n;
+void delete_node(struct node* n) {
+    free(n->data);
+    free(n);
 }
 
-void info_for_node(node* temp) 
-{
-    std::cout << "Info for node:\n";
-    std::cout << "Data: " << temp->data << "\n";
-    std::cout << "Priority: " << temp->priority << "\n";
+void info_for_node(struct node* temp) {
+    printf("Info for node:\n");
+    printf("Data: %s\n", temp->data);
+    printf("Priority: %u\n", temp->priority);
 }
 
-void start() 
-{
-    priority_queue pr_q;
+struct priority_queue* create_priority_queue() {
+    struct priority_queue* pq = (struct priority_queue*)malloc(sizeof(struct priority_queue));
+    if (!pq) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    pq->head = NULL;
+    pq->tail = NULL;
+    pq->max_prior = 0;
+    return pq;
+}
 
-    while (true) 
-    {
-        std::cout << "Options:\n";
-        std::cout << "1. Append\n";
-        std::cout << "2. Pop\n";
-        std::cout << "3. Print Queue\n";
-        std::cout << "4. Exit\n";
-        std::cout << "Enter your choice: ";
+void append(struct priority_queue* pq, struct node* new_node) {
+    if (!pq->head) {
+        pq->head = pq->tail = new_node;
+        pq->max_prior = new_node->priority;
+        return;
+    }
+
+    struct node* temp = pq->head;
+    while (temp != NULL && new_node->priority >= temp->priority) {
+        temp = temp->next;
+    }
+
+    if (temp == pq->head) {
+        new_node->next = pq->head;
+        pq->head->prev = new_node;
+        pq->head = new_node;
+    }
+    else if (!temp) {
+        pq->tail->next = new_node;
+        new_node->prev = pq->tail;
+        pq->tail = new_node;
+    }
+    else {
+        new_node->next = temp;
+        new_node->prev = temp->prev;
+        if (temp->prev) {
+            temp->prev->next = new_node;
+        }
+        temp->prev = new_node;
+    }
+
+    if (new_node->priority > pq->max_prior) {
+        pq->max_prior = new_node->priority;
+    }
+}
+
+struct node* pop(struct priority_queue* pq) {
+    if (!pq->tail) return NULL;
+
+    struct node* temp = pq->tail;
+
+    if (pq->head == pq->tail) {
+        pq->head = NULL;
+        pq->tail = NULL;
+    }
+    else {
+        pq->tail = pq->tail->prev;
+        pq->tail->next = NULL;
+    }
+
+    temp->prev = NULL;
+    return temp;
+}
+
+void print_all(const struct priority_queue* pq) {
+    if (!pq->head) {
+        printf("Queue is empty\n\n");
+        return;
+    }
+    struct node* temp = pq->head;
+    while (temp != NULL) {
+        info_for_node(temp);
+        temp = temp->next;
+    }
+}
+
+void start() {
+    struct priority_queue* pr_q = create_priority_queue();
+
+    while (1) {
+        printf("Options:\n");
+        printf("1. Append\n");
+        printf("2. Pop\n");
+        printf("3. Print Queue\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
 
         uint16_t choice;
-        if (!(std::cin >> choice)) 
-        {
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cerr << "Invalid choice, please enter a number from 1 to 4.\n";
+        if (scanf("%hu", &choice) != 1) {
+            fprintf(stderr, "Invalid choice, please enter a number from 1 to 4.\n");
+            while (getchar() != '\n');
             continue;
         }
 
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        getchar();
 
-        switch (choice) 
-        {
-        case 1:
-            while (true) 
-            {
-                std::cout << "Enter '~' to stop appending.\n";
-                node* new_node = wrapper();
-                if (!new_node) break;
-                pr_q.append(new_node);
+        switch (choice) {
+        case 1: {
+            while (1) {
+                char buffer[256];
+                printf("Enter info or '~' to stop appending (string): ");
+                fgets(buffer, sizeof(buffer), stdin);
+                buffer[strcspn(buffer, "\n")] = 0;
+
+                if (strcmp(buffer, "~") == 0) break;
+
+                uint32_t prior;
+                printf("Enter prior (integer): ");
+                if (scanf("%u", &prior) != 1) {
+                    fprintf(stderr, "Invalid input, please enter an integer for priority.\n");
+                    while (getchar() != '\n');
+                    continue;
+                }
+
+                getchar();
+                struct node* new_node = create_node(buffer, prior);
+                append(pr_q, new_node);
             }
             break;
-        case 2:
-            if (node* popped = pr_q.pop()) 
-            
-            {
+        }
+        case 2: {
+            struct node* popped = pop(pr_q);
+            if (popped) {
                 info_for_node(popped);
                 delete_node(popped);
             }
-            else 
-            {
-                std::cout << "Queue is empty.\n\n";
+            else {
+                printf("Queue is empty.\n\n");
             }
             break;
+        }
         case 3:
-            pr_q.printAll();
+            print_all(pr_q);
             break;
         case 4:
-            std::cout << "Exiting...\n";
+            printf("Exiting...\n");
+            while (pr_q->head) {
+                delete_node(pop(pr_q));
+            }
+            free(pr_q);
             return;
         default:
-            std::cerr << "Invalid choice, please enter a number from 1 to 4.\n";
+            fprintf(stderr, "Invalid choice, please enter a number from 1 to 4.\n");
             break;
         }
     }
 }
 
-int main() 
-{
+int main() {
     start();
     return 0;
 }
