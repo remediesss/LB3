@@ -1,4 +1,4 @@
-
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <cstring>
 #include <limits>
@@ -108,7 +108,7 @@ struct node* find(char* name)
 void del(char* name)
 {
 	struct node* struc = head; // указатель, проходящий по списку установлен на начало списка
-	struct node* prev;// указатель на предшествующий удаляемому элемент
+	struct node* prev_struc = NULL; // указатель на предшествующий элемент
 	int flag = 0;      // индикатор отсутствия удаляемого элемента в списке
 
 	if (head == NULL) // если голова списка равна NULL, то список пуст
@@ -117,41 +117,31 @@ void del(char* name)
 		return;
 	}
 
-	if (strcmp(name, struc->inf) == 0) // если удаляемый элемент - первый
+	if (strcmp(name, head->inf) == 0) // если удаляемый элемент - первый
 	{
 		flag = 1;
-		head = struc->next; // установливаем голову на следующий элемент
-		free(struc);  // удаляем первый элемент
-		struc = head; // устанавливаем указатель для продолжения поиска
+		struct node* temp = head;
+		head = head->next; // установливаем голову на следующий элемент
+		free(temp);  // удаляем первый элемент
 	}
 	else
 	{
-		prev = struc;
-		struc = struc->next;
-	}
-
-	while (struc) // проход по списку и поиск удаляемого элемента
-	{
-		if (strcmp(name, struc->inf) == 0) // если нашли, то
+		prev_struc = head;
+		struc = head->next;
+		while (struc) // проход по списку и поиск удаляемого элемента
 		{
-			flag = 1;         // выставляем индикатор
-			if (struc->next)  // если найденный элемент не последний в списке
+			if (strcmp(name, struc->inf) == 0) // если нашли, то
 			{
-				prev->next = struc->next; // меняем указатели
+				flag = 1;         // выставляем индикатор
+				prev_struc->next = struc->next; // меняем указатели
 				free(struc);		    // удаляем  элемент
-				struc = prev->next; // устанавливаем указатель для продолжения поиска
+				break;
 			}
-			else			// если найденный элемент последний в списке
+			else // если не нашли, то
 			{
-				prev->next = NULL; // обнуляем указатель предшествующего элемента
-				free(struc);	// удаляем  элемент
-				return;
+				prev_struc = struc;
+				struc = struc->next; // устанавливаем указатели для продолжения поиска
 			}
-		}
-		else // если не нашли, то
-		{
-			prev = struc; // устанавливаем указатели для продолжения поиска
-			struc = struc->next;
 		}
 	}
 
@@ -161,6 +151,7 @@ void del(char* name)
 		return;
 	}
 }
+
 
 
 struct node* pop() {
@@ -184,14 +175,25 @@ struct node* pop() {
 	return last;
 }
 
-void stack()
-{
-	while (true)
-	{
+
+
+void printStack() {
+	struct node* temp = head;
+	std::cout << "Stack contents: \n";
+	while (temp) {
+		std::cout << "Name - " << temp->inf << std::endl;
+		temp = temp->next;
+	}
+	std::cout << std::endl;
+}
+
+void stack() {
+	while (true) {
 		std::cout << "options: \n";
 		std::cout << "push: 1\n";
 		std::cout << "pop: 2\n";
-		std::cout << "exit: 3\n";
+		std::cout << "print stack: 3\n";
+		std::cout << "exit: 4\n";
 		std::cout << "your choice: ";
 
 		int choice;
@@ -199,40 +201,39 @@ void stack()
 
 		std::cout << std::endl;
 
-		if (choice == 1)
-		{
+		if (choice == 1) {
 			spstore();
 		}
-		else if (choice == 2)
-		{
+		else if (choice == 2) {
 			struct node* popped = pop();
-			if (popped == nullptr)
-			{
+			if (popped == nullptr) {
 				std::cout << "Stack is Empty\n\n";
 			}
-			else
-			{
+			else {
 				std::cout << "Last block deleted. Name block - " << popped->inf << std::endl;
 			}
 		}
 
-		else if (choice == 3)
-		{
+		else if (choice == 3) {
+			printStack();
+		}
+
+		else if (choice == 4) {
 			return;
 		}
-		else
-		{
+
+		else {
 			std::cout << "Wrong operation\n\n";
 		}
-
 	}
-
 }
+
 
 
 
 int main()
 {
+	setlocale(LC_ALL, "Russian");
 	stack();
 	exit(0);
 }
