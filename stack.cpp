@@ -187,6 +187,22 @@ void printStack() {
 	std::cout << std::endl;
 }
 
+void reverse() {
+	struct node* prev = NULL;
+	struct node* current = head;
+	struct node* next = NULL;
+
+	while (current != NULL) {
+		next = current->next;
+		current->next = prev;
+		prev = current;
+		current = next;
+	}
+
+	last = head;
+	head = prev;
+}
+
 void stack() {
 	while (true) {
 		std::cout << "options: \n";
@@ -194,6 +210,7 @@ void stack() {
 		std::cout << "pop: 2\n";
 		std::cout << "print stack: 3\n";
 		std::cout << "exit: 4\n";
+		std::cout << "reverse: 5\n";
 		std::cout << "your choice: ";
 
 		int choice;
@@ -220,6 +237,11 @@ void stack() {
 
 		else if (choice == 4) {
 			return;
+		}
+
+		else if (choice == 5) {
+			reverse();
+			std::cout << "List reversed\n\n";
 		}
 
 		else {
